@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Link Undangan - Sofyan & Ima</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #1A3A64;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1A3A64;
+            box-shadow: 0 0 0 3px rgba(26, 58, 100, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #1A3A64 0%, #2c5a94 100%);
+            color: white;
+            margin-top: 15px;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 58, 100, 0.3);
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #result-container {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #generated-link {
+            background-color: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-copy { 
+            background: linear-gradient(135deg, #fcb900 0%, #ff6900 100%);
+            color: white;
+        }
+        
+        .btn-test { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-wa { 
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .btn-qr {
+            background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .action-buttons button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #1A3A64;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .history-name {
+            font-weight: 600;
+            color: #1A3A64;
+            margin-bottom: 5px;
+        }
+
+        .history-link {
+            font-size: 0.85em;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .qr-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        #qr-code {
+            margin: 0 auto;
+        }
+
+        .char-counter {
+            font-size: 0.8em;
+            color: #666;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .char-counter.warning {
+            color: #ff6900;
+        }
+
+        .char-counter.error {
+            color: #e74c3c;
+        }
+
+        .template-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.85em;
+            text-align: left;
+            border-left: 4px solid #1A3A64;
+            white-space: pre-line;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .template-select {
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.6em;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-wa, .btn-qr {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-heart" style="color: #e74c3c;"></i> Generator Undangan</h1>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="generator">
+                <i class="fas fa-link"></i> Generator
+            </button>
+            <button class="tab" data-tab="history">
+                <i class="fas fa-history"></i> Riwayat
+            </button>
+        </div>
+
+        <!-- Tab Generator -->
+        <div class="tab-content active" id="generator-tab">
+            <div class="form-group">
+                <label for="version">
+                    <i class="fas fa-user-friends"></i> Pilih Versi Undangan:
+                </label>
+                <select id="version">
+                    <option value="sofyan">Untuk Tamu Sofyan (Mempelai Pria)</option>
+                    <option value="ima">Untuk Tamu Ima (Mempelai Wanita)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="guest-name">
+                    <i class="fas fa-user"></i> Nama Tamu:
+                </label>
+                <input type="text" id="guest-name" placeholder="Contoh: Bpk. Budi & Keluarga" maxlength="50">
+                <div class="char-counter" id="char-counter">0/50 karakter</div>
+            </div>
+
+            <div class="form-group">
+                <label for="wa-template">
+                    <i class="fab fa-whatsapp"></i> Template WhatsApp:
+                </label>
+                <select id="wa-template" class="template-select">
+                    <option value="formal">Formal & Religius</option>
+                    <option value="personal">Personal & Hangat</option>
+                    <option value="modern">Modern & Fun</option>
+                    <option value="islamic">Fokus Islami</option>
+                    <option value="business">Profesional/Bisnis</option>
+                    <option value="colleague">Rekan Kerja</option>
+                    <option value="manager">Atasan/Manager</option>
+                    <option value="owner">Owner/Bos</option>
+                    <option value="custom">Pesan Kustom</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="custom-message-group" style="display: none;">
+                <label for="custom-message">
+                    <i class="fas fa-comment"></i> Pesan Kustom WhatsApp:
+                </label>
+                <textarea id="custom-message" placeholder="Tulis pesan kustom Anda di sini. Gunakan [NAMA] untuk nama tamu dan [LINK] untuk link undangan"></textarea>
+            </div>
+
+            <div class="template-preview" id="template-preview">
+                <strong>Preview Template:</strong><br>
+                <span id="preview-content"></span>
+            </div>
+
+            <button id="generate-btn" class="btn-generate">
+                <div class="spinner" id="spinner"></div>
+                <span id="btn-text">Buat Link Undangan <i class="fas fa-arrow-right"></i></span>
+            </button>
+
+            <div id="result-container" style="display: none;">
+                <div id="message-container"></div>
+                
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-link"></i> Link Undangan:
+                    </label>
+                    <input type="text" id="generated-link" readonly>
+                </div>
+                
+                <div class="qr-container" id="qr-container">
+                    <h3><i class="fas fa-qrcode"></i> QR Code</h3>
+                    <canvas id="qr-code"></canvas>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                        Scan QR code ini dengan smartphone untuk membuka undangan
+                    </p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="copy-btn" class="btn-copy">
+                        <i class="fas fa-copy"></i> Copy Link
+                    </button>
+                    <button id="test-btn" class="btn-test">
+                        <i class="fas fa-external-link-alt"></i> Test Link
+                    </button>
+                    <button id="qr-btn" class="btn-qr">
+                        <i class="fas fa-qrcode"></i> Tampilkan QR Code
+                    </button>
+                    <button id="wa-btn" class="btn-wa">
+                        <i class="fab fa-whatsapp"></i> Kirim via WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab History -->
+        <div class="tab-content" id="history-tab">
+            <div style="text-align: left; margin-bottom: 20px;">
+                <h3><i class="fas fa-history"></i> Riwayat Link yang Dibuat</h3>
+                <p style="color: #666; font-size: 0.9em;">Link yang pernah dibuat dalam sesi ini</p>
+            </div>
+            
+            <div id="history-container">
+                <div style="text-align: center; color: #999; padding: 40px 0;">
+                    <i class="fas fa-inbox" style="font-size: 3em; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>Belum ada link yang dibuat</p>
+                </div>
+            </div>
+            
+            <div id="history-actions" style="display: none;">
+                <button id="clear-history" style="background: #dc3545; color: white; margin-top: 15px;">
+                    <i class="fas fa-trash"></i> Hapus Semua Riwayat
+                </button>
+                <button id="export-history" style="background: #28a745; color: white; margin-top: 10px;">
+                    <i class="fas fa-download"></i> Export ke Text
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Elements
+    const generateBtn = document.getElementById('generate-btn');
+    const resultContainer = document.getElementById('result-container');
+    const guestNameInput = document.getElementById('guest-name');
+    const versionSelect = document.getElementById('version');
+    const waTemplateSelect = document.getElementById('wa-template');
+    const customMessageInput = document.getElementById('custom-message');
+    const customMessageGroup = document.getElementById('custom-message-group');
+    const templatePreview = document.getElementById('template-preview');
+    const previewContent = document.getElementById('preview-content');
+    const generatedLinkInput = document.getElementById('generated-link');
+    const copyBtn = document.getElementById('copy-btn');
+    const testBtn = document.getElementById('test-btn');
+    const waBtn = document.getElementById('wa-btn');
+    const qrBtn = document.getElementById('qr-btn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btn-text');
+    const charCounter = document.getElementById('char-counter');
+    const messageContainer = document.getElementById('message-container');
+    const qrContainer = document.getElementById('qr-container');
+    const qrCode = document.getElementById('qr-code');
+
+    // Tab elements
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const historyContainer = document.getElementById('history-container');
+    const historyActions = document.getElementById('history-actions');
+    const clearHistoryBtn = document.getElementById('clear-history');
+    const exportHistoryBtn = document.getElementById('export-history');
+
+    // Configuration
+    const baseInvitationUrl = 'index.html';
+    const maxNameLength = 50;
+
+    // In-memory storage for history
+    let linkHistory = [];
+
+    // WhatsApp Templates
+    const waTemplates = {
+        formal: `💌 *UNDANGAN PERNIKAHAN* 💌
+
+Kepada Yth.
+Bapak/Ibu/Saudara/i:
+*[NAMA]*
+
+السلام عليكم ورحمة الله وبركاته
+
+Dengan memohon rahmat Allah SWT, saya bermaksud menyelenggarakan acara pernikahan:
+
+👰🤵 *Sofyan & Ima* 👰🤵
+
+Tanpa mengurangi rasa hormat, saya mengundang Bapak/Ibu/Saudara/i untuk hadir memberikan doa restu dalam acara bahagia kami.
+
+🔗 *Info lengkap & Live Streaming:*
+[LINK]
+
+📱 *RSVP & Ucapan:* Tersedia di undangan digital
+
+Atas kehadiran dan doa restu Bapak/Ibu/Saudara/i, kami ucapkan terima kasih.
+
+جزاكم الله خيرا
+والسلام عليكم ورحمة الله وبركاته
+
+Hormat saya,
+Sofyan & Ima 💕`,
+
+        personal: `🌹 Halo *[NAMA]* 🌹
+
+Semoga kabar Bapak/Ibu/Saudara/i dalam keadaan sehat dan bahagia selalu 😊
+
+Alhamdulillah, kami telah memutuskan untuk melanjutkan hubungan ke jenjang yang lebih serius. 
+
+*Sofyan & Ima* akan melangsungkan pernikahan, dan tentunya kehadiran orang-orang terkasih seperti Bapak/Ibu/Saudara/i akan membuat hari bahagia kami semakin sempurna! ✨
+
+📅 *Save The Date & Info Lengkap:*
+[LINK]
+
+💐 Mohon doa restunya ya, semoga Allah mudahkan segala urusan kami
+
+Terima kasih banyak! 🙏
+Sofyan & Ima 💕`,
+
+        modern: `🎉 *BREAKING NEWS* 🎉
+
+*[NAMA]*, kamu udah tau belum?
+Sofyan & Ima bakal MENIKAH nih! 👰🤵
+
+Dan tentunya gak lengkap kalau gak ada kamu di hari spesial kami! 😍
+
+📱 Cek undangan digitalnya di sini:
+[LINK]
+
+Ada live streaming juga loh! Jadi gak ada alasan buat gak ikut celebrate bareng kita 🥳
+
+💌 RSVP & kirim ucapan cantik kamu ya!
+
+See you soon! 
+Love,
+Sofyan & Ima 💖✨`,
+
+        islamic: `بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+
+السلام عليكم ورحمة الله وبركاته
+
+Kepada Yth.
+*[NAMA]*
+
+Dengan mengucap syukur kehadirat Allah SWT yang telah memberikan nikmat dan karunia-Nya, saya bermaksud mengundang Bapak/Ibu/Saudara/i untuk menghadiri dan memberikan doa restu pada acara pernikahan:
+
+🤲 *Sofyan & Ima* 🤲
+
+"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang." 
+*(QS. Ar-Rum: 21)*
+
+🔗 *Undangan Digital:*
+[LINK]
+
+Barakallahu lakuma wa baraka alaikuma wa jama'a bainakuma fi khoir
+
+جزاكم الله خيرا
+والسلام عليكم ورحمة الله وبركاته
+
+Sofyan & Ima`,
+
+        business: `📧 *UNDANGAN PERNIKAHAN*
+
+Kepada Yth.
+*[NAMA]*
+
+Dengan hormat,
+
+Saya bermaksud mengundang Bapak/Ibu untuk menghadiri acara pernikahan:
+
+*Detail Acara:*
+👰🤵 Sofyan & Ima
+
+🔗 *Informasi lengkap dan konfirmasi kehadiran:*
+[LINK]
+
+Kehadiran Bapak/Ibu akan sangat berarti bagi kami. Mohon konfirmasi kehadiran melalui undangan digital.
+
+Atas perhatian dan kehadirannya, saya ucapkan terima kasih.
+
+Hormat saya,
+Sofyan & Ima`,
+
+        colleague: `👋 Halo *[NAMA]*,
+
+Kabar baik nih! Saya dan Ima akan melangsungkan pernikahan dan tentunya saya ingin berbagi kebahagiaan ini dengan rekan-rekan kerja di Cititex.
+
+🎊 *Sofyan & Ima Wedding Invitation*
+
+Sebagai kolega yang selama ini sudah seperti keluarga, kehadiran kamu akan membuat acara kami semakin berkesan.
+
+📱 *Detail lengkap & RSVP:*
+[LINK]
+
+Jangan lupa ya, ada live streaming juga kalau tidak bisa hadir langsung!
+
+Thanks dan see you at the wedding! 🙏
+Sofyan & Ima`,
+
+        manager: `Kepada Yth.
+*[NAMA]*
+Manager Cititex Jember
+
+Selamat pagi/siang,
+
+Dengan segala hormat, perkenankan saya menyampaikan undangan pernikahan untuk Bapak/Ibu.
+
+*Acara Pernikahan:*
+👰🤵 Sofyan & Ima
+
+Sebagai bentuk penghormatan saya kepada Bapak/Ibu yang telah menjadi pemimpin dan mentor yang baik di Cititex Jember, kehadiran Bapak/Ibu akan sangat bermakna dalam momen penting ini.
+
+🔗 *Undangan & Informasi:*
+[LINK]
+
+Mohon maaf apabila undangan ini mengganggu waktu Bapak/Ibu. Terima kasih atas bimbingan dan kepercayaan yang telah diberikan kepada saya selama bekerja di Cititex.
+
+Hormat saya,
+Sofyan (Karyawan Cititex Jember)`,
+
+        owner: `Kepada Yth.
+*[NAMA]*
+Owner Cititex Jember
+
+Assalamu'alaikum Wr. Wb.
+
+Dengan penuh rasa hormat dan syukur kepada Allah SWT, saya bermaksud menyampaikan undangan pernikahan kepada Bapak/Ibu.
+
+*Pernikahan:*
+👰🤵 Sofyan & Ima
+
+Bapak/Ibu telah menjadi sosok yang sangat saya hormati dan kagumi sebagai pemimpin perusahaan. Cititex Jember di bawah kepemimpinan Bapak/Ibu telah menjadi tempat saya berkembang dan belajar banyak hal.
+
+Kehadiran Bapak/Ibu dalam momen sakral ini akan menjadi berkah dan kehormatan yang luar biasa bagi kami.
+
+🔗 *Undangan Digital:*
+[LINK]
+
+Kami sangat berharap Bapak/Ibu berkenan untuk hadir memberikan doa restu. Mohon maaf sebelumnya jika ada hal yang kurang berkenan.
+
+Wassalamu'alaikum Wr. Wb.
+
+Dengan hormat,
+Sofyan (Karyawan Cititex Jember)`
+    };
+
+    // Utility functions
+    function sanitizeInput(input) {
+        return input.trim().replace(/[<>\"'&]/g, '').substring(0, maxNameLength);
+    }
+
+    function showMessage(text, type = 'success') {
+        const messageClass = type === 'success' ? 'success-message' : 'error-message';
+        messageContainer.innerHTML = `<div class="${messageClass}">${text}</div>`;
+        setTimeout(() => {
+            messageContainer.innerHTML = '';
+        }, 5000);
+    }
+
+    function updateCharCounter() {
+        const length = guestNameInput.value.length;
+        charCounter.textContent = `${length}/${maxNameLength} karakter`;
+        
+        if (length > maxNameLength * 0.8) {
+            charCounter.className = 'char-counter warning';
+        } else if (length >= maxNameLength) {
+            charCounter.className = 'char-counter error';
+        } else {
+            charCounter.className = 'char-counter';
+        }
+    }
+
+    function updateTemplatePreview() {
+        const selectedTemplate = waTemplateSelect.value;
+        const guestName = guestNameInput.value || '[NAMA]';
+        
+        if (selectedTemplate === 'custom') {
+            customMessageGroup.style.display = 'block';
+            previewContent.textContent = customMessageInput.value || 'Tulis pesan kustom Anda...';
+        } else {
+            customMessageGroup.style.display = 'none';
+            const template = waTemplates[selectedTemplate];
+            if (template) {
+                previewContent.textContent = template
+                    .replace('[NAMA]', guestName)
+                    .replace('[LINK]', 'https://example.com/undangan');
+            }
+        }
+    }
+
+    function addToHistory(guestName, version, link, template) {
+        const historyItem = {
+            id: Date.now(),
+            guestName,
+            version,
+            link,
+            template,
+            timestamp: new Date().toLocaleString('id-ID')
+        };
+        
+        linkHistory.unshift(historyItem);
+        
+        // Keep only last 10 items
+        if (linkHistory.length > 10) {
+            linkHistory = linkHistory.slice(0, 10);
+        }
+        
+        updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+        if (linkHistory.length === 0) {
+            historyContainer.innerHTML = `
+                <div style="text-align: center; color: #999; padding: 40px 0;">
+                    <i class="fas fa-inbox" style="font-size: 3em; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>Belum ada link yang dibuat</p>
+                </div>
+            `;
+            historyActions.style.display = 'none';
+        } else {
+            historyContainer.innerHTML = linkHistory.map(item => `
+                <div class="history-item">
+                    <div class="history-name">
+                        <i class="fas fa-user"></i> ${item.guestName} 
+                        <span style="font-size: 0.8em; color: #666;">(${item.version === 'sofyan' ? 'Sofyan' : 'Ima'}) - ${item.template}</span>
+                    </div>
+                    <div class="history-link">${item.link}</div>
+                    <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+                        <i class="fas fa-clock"></i> ${item.timestamp}
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button onclick="copyHistoryLink('${item.link}')" style="background: #fcb900; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-size: 0.8em; margin-right: 8px;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button onclick="testHistoryLink('${item.link}')" style="background: #667eea; color: white; padding: 8px 12px; border: none; border-radius: 6px; font-size: 0.8em;">
+                            <i class="fas fa-external-link-alt"></i> Test
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            historyActions.style.display = 'block';
+        }
+    }
+
+    function generateQRCode(text) {
+        if (typeof QRCode === 'undefined') {
+            console.warn('QRCode library not loaded');
+            qrBtn.style.display = 'none';
+            return;
+        }
+
+        try {
+            QRCode.toCanvas(qrCode, text, {
+                width: 200,
+                height: 200,
+                colorDark: '#1A3A64',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            }, function (error) {
+                if (error) {
+                    console.error('Error generating QR code:', error);
+                    showMessage('Gagal membuat QR Code', 'error');
+                    qrBtn.style.display = 'none';
+                }
+            });
+        } catch (error) {
+            console.error('QR Code generation failed:', error);
+            qrBtn.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    guestNameInput.addEventListener('input', () => {
+        updateCharCounter();
+        updateTemplatePreview();
+    });
+
+    waTemplateSelect.addEventListener('change', updateTemplatePreview);
+    customMessageInput.addEventListener('input', updateTemplatePreview);
+
+    // Tab switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.getAttribute('data-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+            
+            tab.classList.add('active');
+            document.getElementById(`${targetTab}-tab`).classList.add('active');
+        });
+    });
+
+    // Generate button
+    generateBtn.addEventListener('click', async () => {
+        const guestName = sanitizeInput(guestNameInput.value);
+        const version = versionSelect.value;
+        const templateType = waTemplateSelect.value;
+
+        if (!guestName) {
+            showMessage('Nama tamu tidak boleh kosong!', 'error');
+            guestNameInput.focus();
+            return;
+        }
+
+        if (guestName.length < 2) {
+            showMessage('Nama tamu minimal 2 karakter!', 'error');
+            guestNameInput.focus();
+            return;
+        }
+
+        // Show loading state
+        generateBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btnText.innerHTML = 'Membuat Link...';
+
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        try {
+            const formattedGuestName = encodeURIComponent(guestName.replace(/ /g, '_'));
+            const fullUrl = `${baseInvitationUrl}?v=${version}&to=${formattedGuestName}`;
+            const completeUrl = window.location.origin + window.location.pathname.replace('generator.html', '') + fullUrl;
+            
+            generatedLinkInput.value = completeUrl;
+            resultContainer.style.display = 'block';
+            
+            // Add to history
+            addToHistory(guestName, version, completeUrl, templateType);
+            
+            showMessage(`Link berhasil dibuat untuk ${guestName}!`);
+            
+            // Generate QR Code
+            generateQRCode(completeUrl);
+            
+        } catch (error) {
+            showMessage('Terjadi kesalahan saat membuat link!', 'error');
+            console.error('Generation error:', error);
+        } finally {
+            // Reset loading state
+            generateBtn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.innerHTML = 'Buat Link Undangan <i class="fas fa-arrow-right"></i>';
+        }
+    });
+
+    // Copy button
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(generatedLinkInput.value);
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Tersalin!';
+            showMessage('Link berhasil disalin ke clipboard!');
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
+            }, 2000);
+        } catch (error) {
+            // Fallback for older browsers
+            generatedLinkInput.select();
+            document.execCommand('copy');
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Tersalin!';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Link';
+            }, 2000);
+        }
+    });
+
+    // Test button
+    testBtn.addEventListener('click', () => {
+        window.open(generatedLinkInput.value, '_blank');
+    });
+
+    // QR Code button
+    qrBtn.addEventListener('click', () => {
+        if (qrContainer.style.display === 'none' || !qrContainer.style.display) {
+            qrContainer.style.display = 'block';
+            qrBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Sembunyikan QR';
+        } else {
+            qrContainer.style.display = 'none';
+            qrBtn.innerHTML = '<i class="fas fa-qrcode"></i> Tampilkan QR Code';
+        }
+    });
+    
+    // WhatsApp button
+    waBtn.addEventListener('click', () => {
+        const guestName = sanitizeInput(guestNameInput.value);
+        const version = versionSelect.value;
+        const link = generatedLinkInput.value;
+        const selectedTemplate = waTemplateSelect.value;
+        
+        let message;
+        
+        if (selectedTemplate === 'custom') {
+            message = customMessageInput.value.trim();
+            if (!message) {
+                showMessage('Pesan kustom tidak boleh kosong!', 'error');
+                return;
+            }
+            message = message.replace(/\[NAMA\]/g, guestName).replace(/\[LINK\]/g, link);
+        } else {
+            const template = waTemplates[selectedTemplate];
+            message = template.replace(/\[NAMA\]/g, guestName).replace(/\[LINK\]/g, link);
+        }
+
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+    });
+
+    // History functions
+    window.copyHistoryLink = async (link) => {
+        try {
+            await navigator.clipboard.writeText(link);
+            showMessage('Link berhasil disalin dari riwayat!');
+        } catch (error) {
+            console.error('Copy error:', error);
+        }
+    };
+
+    window.testHistoryLink = (link) => {
+        window.open(link, '_blank');
+    };
+
+    clearHistoryBtn.addEventListener('click', () => {
+        if (confirm('Yakin ingin menghapus semua riwayat?')) {
+            linkHistory = [];
+            updateHistoryDisplay();
+            showMessage('Riwayat berhasil dihapus!');
+        }
+    });
+
+    exportHistoryBtn.addEventListener('click', () => {
+        if (linkHistory.length === 0) {
+            showMessage('Tidak ada riwayat untuk diekspor!', 'error');
+            return;
+        }
+
+        const exportData = linkHistory.map(item => 
+            `${item.guestName} (${item.version}) [${item.template}] - ${item.link} - ${item.timestamp}`
+        ).join('\n');
+
+        const blob = new Blob([exportData], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `undangan-links-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showMessage('Riwayat berhasil diekspor!');
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!generateBtn.disabled) {
+                    generateBtn.click();
+                }
+            }
+        }
+    });
+
+    // Initialize
+    updateCharCounter();
+    updateHistoryDisplay();
+    updateTemplatePreview();
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+});
+</script>
+</body>
+</html>
